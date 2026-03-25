@@ -1,0 +1,134 @@
+[
+  {
+    "district/state": "Bình Chánh",
+    "number of branches": 5,
+    "avg_totalScore": 3.98,
+    "total_reviews": 789
+  },
+  {
+    "district/state": "Bình Tân",
+    "number of branches": 14,
+    "avg_totalScore": 3.69,
+    "total_reviews": 3309
+  },
+  {
+    "district/state": "Bình Thạnh",
+    "number of branches": 29,
+    "avg_totalScore": 4.11,
+    "total_reviews": 8075
+  },
+  {
+    "district/state": "Củ Chi",
+    "number of branches": 2,
+    "avg_totalScore": 3.75,
+    "total_reviews": 206
+  },
+  {
+    "district/state": "Gò Vấp",
+    "number of branches": 18,
+    "avg_totalScore": 4.2,
+    "total_reviews": 7477
+  },
+  {
+    "district/state": "Hóc Môn",
+    "number of branches": 6,
+    "avg_totalScore": 4.05,
+    "total_reviews": 1006
+  },
+  {
+    "district/state": "Nhà Bè",
+    "number of branches": 2,
+    "avg_totalScore": 3.7,
+    "total_reviews": 114
+  },
+  {
+    "district/state": "Phú Nhuận",
+    "number of branches": 11,
+    "avg_totalScore": 4.15,
+    "total_reviews": 7123
+  },
+  {
+    "district/state": "Quận 1",
+    "number of branches": 33,
+    "avg_totalScore": 4.18,
+    "total_reviews": 20983
+  },
+  {
+    "district/state": "Quận 2",
+    "number of branches": 2,
+    "avg_totalScore": 4.2,
+    "total_reviews": 2173
+  },
+  {
+    "district/state": "Quận 3",
+    "number of branches": 18,
+    "avg_totalScore": 4.19,
+    "total_reviews": 11591
+  },
+  {
+    "district/state": "Quận 4",
+    "number of branches": 5,
+    "avg_totalScore": 4.18,
+    "total_reviews": 1369
+  },
+  {
+    "district/state": "Quận 5",
+    "number of branches": 6,
+    "avg_totalScore": 4.22,
+    "total_reviews": 3089
+  },
+  {
+    "district/state": "Quận 6",
+    "number of branches": 7,
+    "avg_totalScore": 4.11,
+    "total_reviews": 1932
+  },
+  {
+    "district/state": "Quận 7",
+    "number of branches": 29,
+    "avg_totalScore": 4.04,
+    "total_reviews": 7816
+  },
+  {
+    "district/state": "Quận 8",
+    "number of branches": 9,
+    "avg_totalScore": 3.8,
+    "total_reviews": 2239
+  },
+  {
+    "district/state": "Quận 10",
+    "number of branches": 11,
+    "avg_totalScore": 4.08,
+    "total_reviews": 7627
+  },
+  {
+    "district/state": "Quận 11",
+    "number of branches": 10,
+    "avg_totalScore": 4.08,
+    "total_reviews": 4422
+  },
+  {
+    "district/state": "Quận 12",
+    "number of branches": 10,
+    "avg_totalScore": 4.08,
+    "total_reviews": 2674
+  },
+  {
+    "district/state": "Tân Bình",
+    "number of branches": 24,
+    "avg_totalScore": 3.91,
+    "total_reviews": 8733
+  },
+  {
+    "district/state": "Tân Phú",
+    "number of branches": 17,
+    "avg_totalScore": 3.86,
+    "total_reviews": 4753
+  },
+  {
+    "district/state": "Thủ Đức",
+    "number of branches": 64,
+    "avg_totalScore": 4.03,
+    "total_reviews": 13235
+  }
+]

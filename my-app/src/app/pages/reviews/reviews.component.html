@@ -1,0 +1,206 @@
+<div class="reviews-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Đánh giá</h1>
+      <p class="page-sub">Danh sách toàn bộ đánh giá · {{ total | number }} kết quả</p>
+    </div>
+  </div>
+
+  <!-- Filter Panel -->
+  <div class="card filter-panel filter-bar">
+    <div class="filter-row">
+      <!-- Rating stars -->
+      <div class="filter-group filter-group-rating">
+        <label>Rating</label>
+        <div class="star-filter">
+          <button
+            class="star-btn"
+            [class.active]="ratingFilter === 0"
+            (click)="ratingFilter = 0; applyFilters()"
+          >
+            Tất cả
+          </button>
+          @for (s of ratingStars; track s) {
+            <button
+              class="star-btn"
+              [class.active]="ratingFilter === s"
+              (click)="ratingFilter = s; applyFilters()"
+            >
+              {{ '★'.repeat(s) }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Sentiment -->
+      <div class="filter-group">
+        <label>Cảm xúc</label>
+        <select class="form-select" [(ngModel)]="sentimentFilter" (change)="applyFilters()">
+          <option value="all">Tất cả</option>
+          <option value="positive">Tích cực</option>
+          <option value="negative">Tiêu cực</option>
+          <option value="neutral">Trung lập</option>
+        </select>
+      </div>
+
+      <!-- District -->
+      <div class="filter-group">
+        <label>Quận / Huyện</label>
+        <select class="form-select" [(ngModel)]="districtFilter" (change)="onDistrictChange()">
+          <option value="all">Tất cả quận</option>
+          @for (d of filters.districts; track d) {
+            <option [value]="d">{{ d }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Branch -->
+      <div class="filter-group">
+        <label>Chi nhánh</label>
+        <select class="form-select" [(ngModel)]="branchFilter" (change)="applyFilters()">
+          <option value="all">Tất cả chi nhánh</option>
+          @for (b of filteredBranches; track b._id) {
+            <option [value]="b._id">{{ b.title || b._id }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Search -->
+      <div class="filter-group search-group">
+        <label>Tìm kiếm nội dung</label>
+        <div class="search-wrap">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Nhập từ khóa..."
+            [(ngModel)]="q"
+            (keyup.enter)="applyFilters()"
+          />
+          <button type="button" class="btn-accent search-btn" (click)="applyFilters()">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-group filter-actions">
+        <button type="button" class="btn-ghost" (click)="reset()">
+          <i class="bi bi-arrow-counterclockwise"></i> Reset
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review Cards -->
+  @if (loading && reviews.length === 0) {
+    <div class="loading-spinner"><i class="bi bi-arrow-repeat spin"></i> Đang tải...</div>
+  } @else if (!reviews.length && !tableLoading) {
+    <div class="empty-state">
+      <i class="bi bi-inbox" style="font-size:2.5rem"></i>
+      <p>Không tìm thấy đánh giá nào</p>
+    </div>
+  } @else {
+    <div class="review-list" [class.review-list-refreshing]="tableLoading">
+      @for (r of reviews; track r._id) {
+        <div class="review-card" [class.negative-card]="r.is_negative_review === 1">
+          <!-- Card Header -->
+          <div class="card-top" (click)="toggle(r._id)">
+            <div class="user-info">
+              <div class="avatar" [style.background]="r.is_negative_review ? '#c0392b' : r.sentiment_label === 'positive' ? '#27ae60' : '#606880'">
+                {{ (r.name || '?')[0].toUpperCase() }}
+              </div>
+              <div>
+                <p class="user-name">{{ r.name || 'Ẩn danh' }}</p>
+                <p class="review-meta">
+                  {{ dayOfWeek(r.review_dayofweek) }} {{ r.review_hour }}:00 &nbsp;·&nbsp;
+                  {{ r.review_time | slice:0:10 }}
+                </p>
+              </div>
+            </div>
+
+            <div class="card-badges">
+              <span class="stars">{{ stars(r.rating) }}</span>
+              @let sp = sentimentUi(r);
+              <div class="sent-pair" [class.sent-pair-mismatch]="!sp.agree">
+                <span class="sent-leg sent-leg-star">
+                  <abbr title="Theo số sao (rating_sentiment) — chỉ hiện icon">Sao</abbr>
+                  <span
+                    class="sent-star-ring"
+                    [class.sent-star-pos]="sp.star === 'positive'"
+                    [class.sent-star-neg]="sp.star === 'negative'"
+                    [class.sent-star-neu]="sp.star === 'neutral'"
+                  >
+                    <i
+                      class="bi sent-star-ico"
+                      [ngClass]="starIcon(sp.star)"
+                      [attr.title]="'Theo sao: ' + sentimentVnLabel(sp.star)"
+                    ></i>
+                  </span>
+                </span>
+                <span class="sent-leg sent-leg-text">
+                  <abbr title="Theo nội dung: sentiment_score (mạnh) hoặc sentiment_label (vùng điểm mơ hồ)">Chữ</abbr>
+                  <span [class]="sentimentBadge(sp.text)">{{ sentimentVnLabel(sp.text) }}</span>
+                </span>
+              </div>
+              @if (r.rating_text_mismatch_flag) {
+                <span class="badge-mismatch"><i class="bi bi-exclamation-triangle-fill"></i> Mâu thuẫn</span>
+              }
+              @if (!r.has_owner_response) {
+                <span class="badge-no-resp">Chưa phản hồi</span>
+              }
+            </div>
+          </div>
+
+          <!-- Branch info -->
+          <div class="branch-info">
+            <i class="bi bi-geo-alt-fill"></i>
+            {{ r.title || r.branch_code }} · {{ r.district_folder }}
+          </div>
+
+          <!-- Review text -->
+          <p class="review-text">
+            {{ expandedId === r._id ? r.review_text : (r.review_text | slice:0:200) }}
+            @if ((r.review_text?.length || 0) > 200 && expandedId !== r._id) {
+              <button class="read-more" (click)="toggle(r._id)">Xem thêm</button>
+            }
+          </p>
+
+          <!-- Feature tags -->
+          @if (featList(r).length) {
+            <div class="feat-row">
+              @for (f of featList(r); track f) {
+                <span class="feat-chip">{{ f }}</span>
+              }
+            </div>
+          }
+
+          <!-- Owner response (expanded) -->
+          @if (expandedId === r._id && r.has_owner_response && r.owner_response) {
+            <div class="owner-resp">
+              <div class="owner-resp-header">
+                <i class="bi bi-building"></i> Phản hồi của Highlands Coffee
+              </div>
+              <p>{{ r.owner_response }}</p>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-bar">
+      <span>Trang {{ page }} / {{ totalPages }} &nbsp;·&nbsp; {{ total | number }} đánh giá</span>
+      <div class="page-controls">
+        <button class="page-btn" [disabled]="page === 1" (click)="goPage(page - 1)">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        @for (p of pages; track p) {
+          <button class="page-btn" [class.active]="p === page" (click)="goPage(p)">{{ p }}</button>
+        }
+        <button class="page-btn" [disabled]="page === totalPages" (click)="goPage(page + 1)">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  }
+</div>

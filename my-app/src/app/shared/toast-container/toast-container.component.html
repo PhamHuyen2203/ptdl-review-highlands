@@ -1,0 +1,26 @@
+<div class="toast-stack" aria-live="polite">
+  @for (t of toast.items(); track t.id) {
+    <div class="toast" [class]="'toast-' + t.type" role="status">
+      <span class="toast-icon">
+        @switch (t.type) {
+          @case ('success') {
+            <i class="bi bi-check-circle-fill"></i>
+          }
+          @case ('error') {
+            <i class="bi bi-x-octagon-fill"></i>
+          }
+          @case ('warning') {
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          }
+          @default {
+            <i class="bi bi-info-circle-fill"></i>
+          }
+        }
+      </span>
+      <span class="toast-msg">{{ t.message }}</span>
+      <button type="button" class="toast-close" (click)="toast.dismiss(t.id)" aria-label="Đóng">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+  }
+</div>

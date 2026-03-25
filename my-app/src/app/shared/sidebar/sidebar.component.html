@@ -1,0 +1,40 @@
+<aside class="sidebar">
+  <!-- Brand -->
+  <div class="brand">
+    <div class="brand-logo-wrap">
+      <img src="assets/logo-highlands.png" alt="Highlands Coffee" class="brand-logo-img" />
+    </div>
+    <div class="brand-text">
+      <span class="brand-name">Highlands Coffee</span>
+      <span class="brand-sub">Analytics Command</span>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <p class="nav-group-label">Điều hướng</p>
+    @for (item of navItems; track item.path) {
+      <a [routerLink]="item.path" routerLinkActive="active" class="nav-item">
+        <i class="bi {{ item.icon }} nav-icon"></i>
+        <span>{{ item.label }}</span>
+      </a>
+    }
+  </nav>
+
+  <!-- Footer -->
+  <div class="sidebar-footer">
+    <button type="button" class="theme-toggle" (click)="toggleTheme()" [attr.aria-label]="theme.mode() === 'dark' ? 'Chế độ sáng' : 'Chế độ tối'">
+      @if (theme.mode() === 'dark') {
+        <i class="bi bi-sun-fill"></i>
+        <span>Sáng</span>
+      } @else {
+        <i class="bi bi-moon-stars-fill"></i>
+        <span>Tối</span>
+      }
+    </button>
+    <div class="db-status">
+      <span class="status-dot"></span>
+      <span>MongoDB :27018</span>
+    </div>
+  </div>
+</aside>

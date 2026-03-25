@@ -1,0 +1,19 @@
+.app-shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-primary);
+  background-image: radial-gradient(
+    ellipse 120% 80% at 100% -20%,
+    color-mix(in srgb, var(--accent) 12%, transparent),
+    transparent 50%
+  );
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1.35rem 1.75rem 2rem;
+  background: transparent;
+}

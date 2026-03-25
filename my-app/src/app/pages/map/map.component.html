@@ -1,0 +1,119 @@
+<div class="map-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Bản đồ Chi nhánh</h1>
+      <p class="page-sub">Phân bổ và mức độ rủi ro theo Quận / Chi nhánh tại TP.HCM</p>
+    </div>
+    <div class="view-toggle">
+      <button class="toggle-btn" [class.active]="viewMode === 'district'" (click)="toggleMode('district')">
+        <i class="bi bi-map-fill"></i> Theo Quận
+      </button>
+      <button class="toggle-btn" [class.active]="viewMode === 'branch'" (click)="toggleMode('branch')">
+        <i class="bi bi-geo-alt-fill"></i> Theo Chi nhánh
+      </button>
+    </div>
+  </div>
+
+  <div class="map-layout">
+    <!-- Left Panel -->
+    <div class="side-panel">
+      <!-- Legend -->
+      <div class="card legend-card">
+        <p class="card-title">Chú thích</p>
+        <div class="legend-items">
+          <div class="legend-item">
+            <span class="legend-dot" style="background:#27ae60"></span> Thấp (&lt; 8%)
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background:#f1c40f"></span> Trung thấp (8–15%)
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background:#e67e22"></span> Trung bình (15–25%)
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background:#e74c3c"></span> Cao (&gt; 25%)
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected District Info -->
+      @if (selectedDistrict) {
+        <div class="card district-detail">
+          <div class="detail-header">
+            <h3>{{ selectedDistrict.district }}</h3>
+            <button class="close-btn" (click)="clearSelection()">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+          <div class="detail-stats">
+            <div class="det-stat">
+              <span class="det-label">Chi nhánh</span>
+              <span class="det-val">{{ selectedDistrict.branchCount }}</span>
+            </div>
+            <div class="det-stat">
+              <span class="det-label">Tổng reviews</span>
+              <span class="det-val">{{ selectedDistrict.total | number }}</span>
+            </div>
+            <div class="det-stat">
+              <span class="det-label">Rating TB</span>
+              <span class="det-val">{{ selectedDistrict.avgRating }} ★</span>
+            </div>
+            <div class="det-stat">
+              <span class="det-label">% Tiêu cực</span>
+              <span class="det-val" [style.color]="negRateColorCss(selectedDistrict.negRate)">
+                {{ selectedDistrict.negRate }}%
+              </span>
+            </div>
+          </div>
+
+          <!-- Branches in district -->
+          @if (districtBranches.length) {
+            <p class="branch-list-title">Chi nhánh trong quận</p>
+            <div class="branch-list">
+              @for (b of districtBranches; track b.branch_code) {
+                <div class="branch-item">
+                  <div class="branch-item-left">
+                    <span class="branch-dot" [style.background]="negRateColorCss(b.negRate)"></span>
+                    <span class="branch-title" [title]="b.title">{{ b.title | slice:0:22 }}...</span>
+                  </div>
+                  <span [style.color]="negRateColorCss(b.negRate)" class="branch-rate">
+                    {{ b.negRate }}%
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- District list -->
+        <div class="card">
+          <p class="card-title">Quận / Huyện ({{ districts.length }})</p>
+          <div class="district-list">
+            @for (d of districts; track d.district) {
+              <div class="dist-item" (click)="selectDistrict(d)">
+                <div class="dist-color" [style.background]="negRateColorCss(d.negRate)"></div>
+                <div class="dist-info">
+                  <span class="dist-name">{{ d.district }}</span>
+                  <span class="dist-meta">{{ d.branchCount }} CN · {{ d.total | number }} reviews</span>
+                </div>
+                <span class="dist-rate" [style.color]="negRateColorCss(d.negRate)">{{ d.negRate }}%</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Map Container -->
+    <div class="map-wrap">
+      @if (loading) {
+        <div class="map-loading">
+          <i class="bi bi-arrow-repeat spin"></i>
+          Đang tải dữ liệu bản đồ...
+        </div>
+      }
+      <div id="leaflet-map"></div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,176 @@
+<div class="analytics">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Phân tích</h1>
+      <p class="page-sub">Insight, xu hướng và bản đồ rủi ro · {{ periodLabel }}</p>
+    </div>
+    @if (loading && hasLoadedOnce) {
+      <div class="analytics-loading-inline">
+        <i class="bi bi-arrow-repeat spin"></i> Đang cập nhật dữ liệu...
+      </div>
+    }
+    <div class="period-strip analytics-period" role="group" aria-label="Khoảng thời gian">
+      @for (p of presets; track p.id) {
+        <button
+          type="button"
+          class="period-btn"
+          [class.active]="preset === p.id"
+          (click)="setPreset(p.id)"
+        >
+          {{ p.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="analytics-content">
+    @if (loading && !hasLoadedOnce) {
+      <div class="analytics-loading-overlay">
+        <div class="loading-spinner"><i class="bi bi-arrow-repeat spin"></i> Đang tải dữ liệu...</div>
+      </div>
+    }
+    <!-- Auto Insights -->
+    <div class="insights-row">
+    @for (ins of insights; track $index) {
+      <div class="insight-card">
+        <i class="bi bi-lightbulb-fill insight-ico"></i>
+        <p>{{ ins }}</p>
+      </div>
+    }
+  </div>
+
+  <!-- Row 1: Trend + District Risk -->
+  <div class="row-2col">
+    <div class="card chart-card">
+      <div class="section-header">
+        <span class="dot"></span>
+        <h2>Xu hướng Tích cực / Tiêu cực theo tháng</h2>
+      </div>
+      <div class="chart-wrap h280">
+        <canvas #trendChart></canvas>
+      </div>
+    </div>
+
+    <div class="card chart-card">
+      <div class="section-header">
+        <span class="dot"></span>
+        <h2>Top Quận rủi ro</h2>
+      </div>
+      <div class="chart-wrap h280">
+        <canvas #districtRiskChart></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Shift + Keywords -->
+  <div class="row-2col">
+    <div class="card chart-card">
+      <div class="section-header">
+        <span class="dot"></span>
+        <h2>Phân bố theo Ca làm việc</h2>
+      </div>
+      <div class="chart-wrap h240">
+        <canvas #shiftChart></canvas>
+      </div>
+    </div>
+
+    <div class="card chart-card">
+      <div class="section-header">
+        <span class="dot"></span>
+        <h2>Top Từ khóa Phàn nàn</h2>
+      </div>
+      <div class="chart-wrap h240">
+        <canvas #keywordChart></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Heatmap: Hour x Day -->
+  <div class="card heatmap-card">
+    <div class="section-header">
+      <span class="dot"></span>
+      <h2>Bản đồ Rủi ro: Giờ × Ngày trong tuần (Đánh giá tiêu cực)</h2>
+    </div>
+
+    @if (heatmapData.length) {
+      <div class="heatmap-wrap">
+        <!-- Day labels (top) -->
+        <div class="heatmap-grid">
+          <div class="heatmap-corner"></div>
+          @for (d of days; track d) {
+            <div class="day-label">{{ d }}</div>
+          }
+
+          <!-- Rows: hours -->
+          @for (h of hours; track h) {
+            <div class="hour-label">{{ h }}:00</div>
+            @for (d of days; track d; let di = $index) {
+              <div
+                class="heat-cell"
+                [style.background]="heatmapColor(heatmapData[h][di])"
+                [title]="heatmapTitle(h, di)"
+              >
+                @if (heatmapData[h][di] > 0) {
+                  <span class="cell-val">{{ heatmapData[h][di] }}</span>
+                }
+              </div>
+            }
+          }
+        </div>
+
+        <!-- Legend -->
+        <div class="heatmap-legend">
+          <span>Thấp</span>
+          <div class="legend-gradient"></div>
+          <span>Cao</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- District Risk Table -->
+  <div class="card">
+    <div class="section-header">
+      <span class="dot"></span>
+      <h2>Chi tiết Top Quận rủi ro</h2>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Quận / Huyện</th>
+          <th>Chi nhánh</th>
+          <th>Tổng đánh giá</th>
+          <th>Tiêu cực</th>
+          <th>Rating TB</th>
+          <th>% Tiêu cực</th>
+          <th>Mức rủi ro</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (d of districtRisk; track d.district; let i = $index) {
+          <tr>
+            <td style="color:var(--text-muted); font-weight:700">{{ i + 1 }}</td>
+            <td>{{ d.district }}</td>
+            <td style="text-align:center">{{ d.branchCount }}</td>
+            <td>{{ d.total | number }}</td>
+            <td>{{ d.negative | number }}</td>
+            <td>{{ d.avgRating }}</td>
+            <td [style.color]="getRateColor(d.negRate)" style="font-weight:700">{{ d.negRate }}%</td>
+            <td>
+              @if (d.negRate > 25) {
+                <span class="risk-badge high">Cao</span>
+              } @else if (d.negRate > 15) {
+                <span class="risk-badge medium">Trung bình</span>
+              } @else {
+                <span class="risk-badge low">Thấp</span>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  </div>
+</div>

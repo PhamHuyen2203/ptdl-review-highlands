@@ -1,0 +1,155 @@
+<div class="alerts-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">
+        <i class="bi bi-bell-fill text-danger"></i>
+        Cảnh báo
+      </h1>
+      <p class="page-sub">Đánh giá tiêu cực chưa được phản hồi</p>
+    </div>
+    <div class="alert-pulse">
+      <span class="pulse-ring"></span>
+      <span class="pulse-core"></span>
+      {{ totalUnresponded | number }} chưa phản hồi
+    </div>
+  </div>
+
+  <!-- Summary KPIs -->
+  <div class="summary-grid">
+    <div class="summary-card critical">
+      <div class="sum-icon"><i class="bi bi-exclamation-octagon-fill"></i></div>
+      <div>
+        <p class="sum-label">Khẩn cấp (1★)</p>
+        <p class="sum-val">{{ criticalCount | number }}</p>
+      </div>
+    </div>
+    <div class="summary-card high">
+      <div class="sum-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <div>
+        <p class="sum-label">Cao (2★)</p>
+        <p class="sum-val">{{ highCount | number }}</p>
+      </div>
+    </div>
+    <div class="summary-card medium">
+      <div class="sum-icon"><i class="bi bi-exclamation-circle-fill"></i></div>
+      <div>
+        <p class="sum-label">Trung bình (3★)</p>
+        <p class="sum-val">{{ mediumCount | number }}</p>
+      </div>
+    </div>
+    <div class="card top-districts">
+      <p class="card-title">Top Quận chưa phản hồi</p>
+      <div class="dist-list">
+        @for (d of topDistricts; track d.district) {
+          <div class="dist-row">
+            <span>{{ d.district }}</span>
+            <span class="dist-count">{{ d.count }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card filter-bar">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label>Mức độ</label>
+        <div class="level-btns">
+          @for (opt of [
+            {val:'all', label:'Tất cả'},
+            {val:'critical', label:'Khẩn cấp'},
+            {val:'warning', label:'Cảnh báo'},
+          ]; track opt.val) {
+            <button
+              class="level-btn"
+              [class.active]="levelFilter === opt.val"
+              [class.critical]="opt.val === 'critical' && levelFilter === opt.val"
+              [class.warning]="opt.val === 'warning' && levelFilter === opt.val"
+              (click)="levelFilter = opt.val; load()"
+            >
+              {{ opt.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>Quận / Huyện</label>
+        <select class="form-select" [(ngModel)]="districtFilter" (change)="load()">
+          <option value="all">Tất cả quận</option>
+          @for (d of filters.districts; track d) {
+            <option [value]="d">{{ d }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert Cards -->
+  @if (loading) {
+    <div class="loading-spinner"><i class="bi bi-arrow-repeat spin"></i> Đang tải...</div>
+  } @else if (!alerts.length) {
+    <div class="empty-state">
+      <i class="bi bi-check-circle-fill text-success" style="font-size:3rem"></i>
+      <p>Không có cảnh báo nào</p>
+    </div>
+  } @else {
+    <div class="alert-list">
+      @for (a of alerts; track a._id) {
+        <div class="alert-card" [class]="urgencyLevel(a)">
+          <!-- Urgency badge -->
+          <div class="alert-top">
+            <div class="urgency-badge" [class]="urgencyLevel(a)">
+              @if (urgencyLevel(a) === 'critical') {
+                <i class="bi bi-exclamation-octagon-fill"></i>
+              } @else if (urgencyLevel(a) === 'high') {
+                <i class="bi bi-exclamation-triangle-fill"></i>
+              } @else {
+                <i class="bi bi-exclamation-circle-fill"></i>
+              }
+              {{ urgencyLabel(a) }}
+            </div>
+            <div class="alert-meta">
+              <span class="stars">{{ stars(a.rating) }}</span>
+              <span class="date">{{ a.review_time | slice:0:10 }}</span>
+            </div>
+          </div>
+
+          <!-- Location -->
+          <div class="alert-location">
+            <i class="bi bi-geo-alt-fill"></i>
+            <strong>{{ a.title || a.branch_code }}</strong>
+            &nbsp;·&nbsp;{{ a.district_folder }}
+          </div>
+
+          <!-- Reviewer -->
+          <div class="alert-reviewer">
+            <i class="bi bi-person-fill"></i> {{ a.name || 'Ẩn danh' }}
+          </div>
+
+          <!-- Review text -->
+          <p class="alert-text">{{ a.review_text }}</p>
+
+          <!-- Feature tags -->
+          @if (featList(a).length) {
+            <div class="feat-row">
+              @for (f of featList(a); track f) {
+                <span class="feat-chip">{{ f }}</span>
+              }
+            </div>
+          }
+
+          <!-- Mismatch warning -->
+          @if (a.rating_text_mismatch_flag) {
+            <div class="mismatch-warn">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              Rating và nội dung không khớp — cần xem xét kỹ
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

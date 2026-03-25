@@ -1,0 +1,212 @@
+<div class="live-tracking">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">
+        <span class="live-dot"></span>
+        Live Tracking
+      </h1>
+      <p class="page-sub">Giám sát đánh giá theo thời gian thực</p>
+    </div>
+    <button class="btn-accent" (click)="exportCsv()">
+      <i class="bi bi-download"></i> Xuất CSV
+    </button>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="card filter-bar">
+    <div class="filter-row">
+      <!-- Sentiment -->
+      <div class="filter-group">
+        <label>Cảm xúc</label>
+        <div class="sentiment-btns">
+          @for (opt of [
+            {val:'all', label:'Tất cả', icon:'bi-funnel'},
+            {val:'positive', label:'Tích cực', icon:'bi-emoji-smile'},
+            {val:'negative', label:'Tiêu cực', icon:'bi-emoji-frown'},
+            {val:'neutral', label:'Trung lập', icon:'bi-emoji-neutral'},
+          ]; track opt.val) {
+            <button
+              class="sent-btn"
+              [class.active-pos]="sentiment === opt.val && opt.val === 'positive'"
+              [class.active-neg]="sentiment === opt.val && opt.val === 'negative'"
+              [class.active-neu]="sentiment === opt.val && opt.val === 'neutral'"
+              [class.active-all]="sentiment === opt.val && opt.val === 'all'"
+              (click)="sentiment = opt.val; applyFilters()"
+            >
+              <i class="bi {{ opt.icon }}"></i> {{ opt.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- District -->
+      <div class="filter-group">
+        <label>Quận / Huyện</label>
+        <select class="form-select" [(ngModel)]="district" (change)="onDistrictChange()">
+          <option value="all">Tất cả quận</option>
+          @for (d of filters.districts; track d) {
+            <option [value]="d">{{ d }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Branch -->
+      <div class="filter-group">
+        <label>Chi nhánh</label>
+        <select class="form-select" [(ngModel)]="branch" (change)="applyFilters()">
+          <option value="all">Tất cả chi nhánh</option>
+          @for (b of filteredBranches; track b._id) {
+            <option [value]="b._id">{{ b.title || b._id }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Date range -->
+      <div class="filter-group">
+        <label>Từ ngày</label>
+        <input type="date" class="form-control" [(ngModel)]="startDate" (change)="applyFilters()" />
+      </div>
+
+      <div class="filter-group">
+        <label>Đến ngày</label>
+        <input type="date" class="form-control" [(ngModel)]="endDate" (change)="applyFilters()" />
+      </div>
+
+      <!-- Search -->
+      <div class="filter-group search-group">
+        <label>Tìm kiếm</label>
+        <div class="search-wrap">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Tìm theo nội dung..."
+            [(ngModel)]="q"
+            (keyup.enter)="applyFilters()"
+          />
+          <button class="btn-accent search-btn" (click)="applyFilters()">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Reset -->
+      <div class="filter-group" style="align-self: flex-end;">
+        <button class="btn-ghost" (click)="reset()">
+          <i class="bi bi-arrow-counterclockwise"></i> Reset
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats bar -->
+  <div class="stats-bar">
+    <span class="total-count">
+      <i class="bi bi-list-check"></i>
+      {{ total | number }} đánh giá
+    </span>
+    <span class="page-info">Trang {{ page }} / {{ totalPages }}</span>
+  </div>
+
+  <!-- Table -->
+  <div class="card table-card">
+    @if (loading && reviews.length === 0) {
+      <div class="loading-spinner"><i class="bi bi-arrow-repeat spin"></i> Đang tải...</div>
+    } @else if (!reviews.length && !tableLoading) {
+      <div class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <p>Không tìm thấy đánh giá nào</p>
+      </div>
+    } @else {
+      <div class="table-scroll" [class.table-refreshing]="tableLoading">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:120px">Thời gian</th>
+              <th style="width:110px">Người dùng</th>
+              <th>Nội dung</th>
+              <th style="width:90px">Chi nhánh</th>
+              <th style="width:90px">Quận</th>
+              <th style="width:65px">Rating</th>
+              <th class="th-sentiment">Sao / Chữ</th>
+              <th style="width:90px">Vấn đề</th>
+              <th style="width:60px">Phản hồi</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of reviews; track r._id) {
+              <tr [class.row-negative]="r.is_negative_review === 1">
+                <td class="date-cell">{{ r.review_time | slice:0:10 }}</td>
+                <td class="name-cell">{{ r.name || '—' }}</td>
+                <td class="review-cell" [title]="r.review_text">
+                  {{ r.review_text | slice:0:100 }}{{ (r.review_text?.length || 0) > 100 ? '…' : '' }}
+                </td>
+                <td class="small-cell" [title]="r.title">
+                  {{ (r.title || r.branch_code) | slice:0:18 }}...
+                </td>
+                <td class="small-cell">{{ r.district_folder }}</td>
+                <td>
+                  <span class="stars small-stars">{{ stars(r.rating) }}</span>
+                </td>
+                <td class="sentiment-cell">
+                  @let sp = sentimentUi(r);
+                  <div class="sent-pair sent-pair-compact" [class.sent-pair-mismatch]="!sp.agree">
+                    <span class="sent-leg sent-leg-star">
+                      <abbr title="Theo số sao (rating_sentiment) — icon">Sao</abbr>
+                      <span
+                        class="sent-star-ring"
+                        [class.sent-star-pos]="sp.star === 'positive'"
+                        [class.sent-star-neg]="sp.star === 'negative'"
+                        [class.sent-star-neu]="sp.star === 'neutral'"
+                      >
+                        <i
+                          class="bi sent-star-ico"
+                          [ngClass]="starIcon(sp.star)"
+                          [attr.title]="'Theo sao: ' + sentimentVnLabel(sp.star)"
+                        ></i>
+                      </span>
+                    </span>
+                    <span class="sent-leg sent-leg-text">
+                      <abbr title="Theo chữ: score mạnh hoặc sentiment_label">Chữ</abbr>
+                      <span [class]="sentimentBadge(sp.text)">{{ sentimentVnLabel(sp.text) }}</span>
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <div class="feat-tags">
+                    @for (f of featList(r); track f) {
+                      <span class="feat-tag">{{ f }}</span>
+                    }
+                  </div>
+                </td>
+                <td class="text-center">
+                  @if (r.has_owner_response) {
+                    <i class="bi bi-check-circle-fill text-success"></i>
+                  } @else {
+                    <i class="bi bi-x-circle text-danger"></i>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-bar">
+        <span>Hiển thị {{ reviews.length }} / {{ total | number }} đánh giá</span>
+        <div class="page-controls">
+          <button class="page-btn" [disabled]="page === 1" (click)="goPage(page - 1)">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          @for (p of pages; track p) {
+            <button class="page-btn" [class.active]="p === page" (click)="goPage(p)">{{ p }}</button>
+          }
+          <button class="page-btn" [disabled]="page === totalPages" (click)="goPage(page + 1)">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

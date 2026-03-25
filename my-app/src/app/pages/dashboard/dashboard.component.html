@@ -1,0 +1,231 @@
+<div class="dashboard">
+  <!-- Hero header -->
+  <header class="dash-hero">
+    <div class="hero-text">
+      <p class="hero-eyebrow">Highlands Coffee · TP.HCM</p>
+      <h1 class="hero-title">Tổng quan thương hiệu</h1>
+      <p class="hero-desc">
+        Theo dõi sức khỏe đánh giá, cảm xúc khách hàng và rủi ro theo khu vực.
+      </p>
+    </div>
+    <div class="hero-actions">
+      <div class="period-strip" role="group" aria-label="Khoảng thời gian">
+        @for (p of presets; track p.id) {
+          <button
+            type="button"
+            class="period-btn"
+            [class.active]="preset === p.id"
+            (click)="setPreset(p.id)"
+          >
+            {{ p.label }}
+          </button>
+        }
+      </div>
+      @if (periodLabel) {
+        <div class="period-badge">
+          <i class="bi bi-calendar3"></i> {{ periodLabel }}
+        </div>
+      }
+    </div>
+  </header>
+
+  @if (loading) {
+    <div class="bento-skeleton">
+      <div class="sk-hero skeleton"></div>
+      <div class="sk-row">
+        <div class="sk-card skeleton"></div>
+        <div class="sk-card skeleton"></div>
+        <div class="sk-card skeleton"></div>
+      </div>
+      <div class="sk-charts">
+        <div class="sk-chart skeleton"></div>
+        <div class="sk-chart narrow skeleton"></div>
+      </div>
+      <p class="sk-hint"><i class="bi bi-arrow-repeat spin"></i> Đang tải gói dữ liệu tổng quan…</p>
+    </div>
+  }
+
+  @if (!loading && !stats) {
+    <div class="empty-dash card">
+      <i class="bi bi-database-x"></i>
+      <p>Không có dữ liệu trong khoảng thời gian đã chọn.</p>
+      <button type="button" class="btn-ghost" (click)="setPreset('all')">Xem toàn bộ</button>
+    </div>
+  }
+
+  @if (!loading && stats) {
+    <!-- Bento KPI -->
+    <section class="bento-kpi">
+      <article class="kpi-hero card">
+        <div class="kpi-hero-top">
+          <span class="kpi-hero-label">Healthy Score</span>
+          <span class="kpi-hero-pill" [style.color]="getHealthColor(stats.healthyScore)">
+            {{ stats.healthyScore | number: '1.0-0' }} / 100
+          </span>
+        </div>
+        <p class="kpi-hero-value" [style.color]="getHealthColor(stats.healthyScore)">
+          {{ stats.healthyScore | number: '1.1-1' }}
+        </p>
+        <div class="kpi-hero-bar">
+          <div
+            class="kpi-hero-fill"
+            [style.width.%]="stats.healthyScore"
+            [style.background]="getHealthColor(stats.healthyScore)"
+          ></div>
+        </div>
+        <p class="kpi-hero-foot">
+          {{ stats.totalReviews | number }} đánh giá · {{ stats.totalBranches }} chi nhánh
+        </p>
+      </article>
+
+      <div class="kpi-grid-compact">
+        <article class="kpi-mini card">
+          <i class="bi bi-star-fill kpi-mini-ico" style="color: var(--warning)"></i>
+          <p class="kpi-mini-val">{{ stats.avgRating | number: '1.2-2' }}</p>
+          <p class="kpi-mini-lbl">Rating TB</p>
+          <p class="kpi-mini-sub stars">{{ stars(stats.avgRating) }}</p>
+        </article>
+        <article class="kpi-mini card" title="Trung bình sentiment_score của nội dung đánh giá (không phải theo sao). Thang gần +1 = lời văn tích cực, âm = tiêu cực, gần 0 = trung tính.">
+          <i class="bi bi-chat-quote-fill kpi-mini-ico" style="color: var(--info-light)"></i>
+          <p class="kpi-mini-val">{{ stats.sentimentScore | number: '1.3-3' }}</p>
+          <p class="kpi-mini-lbl">Điểm cảm xúc (chữ)</p>
+          <p class="kpi-mini-sub">TB sentiment_score — đo từ nội dung chữ, khác với cảm xúc theo sao</p>
+        </article>
+        <article class="kpi-mini card kpi-mini-alert">
+          <i class="bi bi-emoji-frown-fill kpi-mini-ico" style="color: var(--accent-light)"></i>
+          <p class="kpi-mini-val" [style.color]="getRateColor(stats.negativeRate)">
+            {{ stats.negativeRate | number: '1.1-1' }}%
+          </p>
+          <p class="kpi-mini-lbl">Tiêu cực</p>
+        </article>
+        <article class="kpi-mini card">
+          <i class="bi bi-reply-fill kpi-mini-ico" style="color: #9b59b6"></i>
+          <p class="kpi-mini-val">{{ stats.responseRate | number: '1.3-3' }}%</p>
+          <p class="kpi-mini-lbl">Phản hồi</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Charts: wider trend -->
+    <section class="charts-bento">
+      <div class="card chart-wide">
+        <div class="section-header">
+          <span class="dot"></span>
+          <h2>Xu hướng theo thời gian</h2>
+        </div>
+        <div class="chart-tall">
+          <canvas #trendChart></canvas>
+        </div>
+      </div>
+      <div class="charts-side">
+        <div class="card chart-donut">
+          <div class="section-header">
+            <span class="dot"></span>
+            <h2>Phân phối cảm xúc</h2>
+          </div>
+          <div class="chart-donut-inner">
+            <canvas #ratingDistChart></canvas>
+          </div>
+        </div>
+        <div class="card insights-card">
+          <div class="section-header">
+            <span class="dot"></span>
+            <h2>Insight tự động</h2>
+          </div>
+          <ul class="insights-list">
+            @for (ins of insights; track $index) {
+              <li class="insight-item">
+                <i class="bi bi-lightbulb-fill insight-icon"></i>
+                <span>{{ ins }}</span>
+              </li>
+            }
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="card chart-bar-section">
+      <div class="section-header">
+        <span class="dot"></span>
+        <h2>Top quận theo tỷ lệ tiêu cực</h2>
+      </div>
+      <div class="chart-bar-wrap">
+        <canvas #districtChart></canvas>
+      </div>
+    </section>
+
+    <section class="rankings-asym">
+      <div class="card rank-wide">
+        <div class="section-header">
+          <span class="dot"></span>
+          <h2>Xếp hạng chi nhánh</h2>
+          <button type="button" class="btn-ghost sort-btn" (click)="toggleBranchSort()">
+            <i class="bi" [class.bi-sort-down]="branchSort === 'desc'" [class.bi-sort-up]="branchSort === 'asc'"></i>
+            {{ branchSort === 'desc' ? 'Rủi ro cao' : 'Rủi ro thấp' }}
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Chi nhánh</th>
+                <th>Quận</th>
+                <th>Rating</th>
+                <th>Tổng</th>
+                <th>% Tiêu cực</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (b of branchRanking; track b.branch_code; let i = $index) {
+                <tr>
+                  <td class="rank-num">{{ i + 1 }}</td>
+                  <td><span class="branch-name" [title]="b.title">{{ b.title }}</span></td>
+                  <td class="text-muted">{{ b.district }}</td>
+                  <td>
+                    <span class="stars">{{ stars(b.avgRating) }}</span>
+                    <small class="text-muted"> {{ b.avgRating }}</small>
+                  </td>
+                  <td>{{ b.total | number }}</td>
+                  <td>
+                    <span class="rate-badge" [style.color]="getRateColor(b.negRate)">{{ b.negRate }}%</span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card rank-narrow">
+        <div class="section-header">
+          <span class="dot"></span>
+          <h2>Theo quận</h2>
+        </div>
+        <div class="table-wrap table-wrap-tall">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Quận</th>
+                <th>CN</th>
+                <th>%</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (d of districtRanking; track d.district; let i = $index) {
+                <tr>
+                  <td class="rank-num">{{ i + 1 }}</td>
+                  <td class="dist-cell">{{ d.district }}</td>
+                  <td class="text-center">{{ d.branchCount }}</td>
+                  <td>
+                    <span class="rate-badge" [style.color]="getRateColor(d.negRate)">{{ d.negRate }}%</span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  }
+</div>
